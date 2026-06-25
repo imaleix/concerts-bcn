@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concerts BCN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg:        #0a0a0f;
+    --surface:   #111118;
+    --card:      #16161f;
+    --border:    #2a2a38;
+    --accent:    #ff3c5f;
+    --accent2:   #7b5cff;
+    --text:      #e8e8f0;
+    --muted:     #6b6b88;
+    --pill-bg:   #1e1e2e;
+    --pill-on:   #ff3c5f;
+    --radius:    10px;
+    --font:      'Space Grotesk', sans-serif;
+    --mono:      'Space Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(16px, 4vw, 48px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    gap: 16px;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent); }
+
+  #search-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.875rem;
+    padding: 8px 14px;
+    width: 220px;
+    transition: border-color .2s;
+    outline: none;
+  }
+  #search-input:focus { border-color: var(--accent2); }
+  #search-input::placeholder { color: var(--muted); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 48px) 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-family: var(--mono);
+  }
+
+  /* ── FILTERS ── */
+  .filters-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 48px) 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    width: 52px;
+    flex-shrink: 0;
+  }
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    background: var(--pill-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 5px 14px;
+    transition: all .15s;
+    user-select: none;
+  }
+  .pill:hover { border-color: var(--accent2); color: var(--text); }
+  .pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 48px) 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #result-count {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  #result-count strong { color: var(--text); }
+
+  /* ── GRID ── */
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 48px) 64px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-2px);
+  }
+  .card-date-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-date {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
+  .card-genre {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    background: var(--pill-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .card-artist {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .card-venue {
+    font-size: 0.82rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .card-venue::before {
+    content: '📍';
+    font-size: 0.75rem;
+  }
+  .card-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 4px;
+    flex: 1;
+  }
+  .card-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-price {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .card-price.free { color: #3ec97c; }
+  .btn-tickets {
+    background: var(--accent);
+    border: none;
+    border-radius: 7px;
+    color: #fff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 16px;
+    text-decoration: none;
+    transition: opacity .15s;
+    letter-spacing: .01em;
+  }
+  .btn-tickets:hover { opacity: .85; }
+  .btn-tickets.no-link {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* ── EMPTY / LOADING ── */
+  .msg-center {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .msg-center .big { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+  /* ── CONFIG BANNER ── */
+  #config-banner {
+    background: #1a1020;
+    border: 1px solid #4a2060;
+    border-radius: var(--radius);
+    color: #c89fff;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0 clamp(16px, 4vw, 48px) 24px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 14px 18px;
+  }
+  #config-banner strong { color: #e0c0ff; }
+  #config-banner code {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+  #config-banner.hidden { display: none; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    #search-input { width: 140px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">concerts<span>BCN</span></a>
+    <input id="search-input" type="search" placeholder="Artista, sala…" autocomplete="off">
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <h1>Agenda de<br><em>concerts</em><br>Barcelona</h1>
+  <p class="hero-sub">// actualitzada en temps real</p>
+</div>
+
+<!-- ═══ CONFIG BANNER (visible fins que l'usuari posi la URL del seu Sheet) ═══ -->
+<div id="config-banner">
+  <strong>⚙️ Configura la teva agenda:</strong> Edita la variable <code>SHEET_CSV_URL</code> al final d'aquest fitxer amb la URL pública del teu Google Sheets (Fitxer → Compartir → Publicar al web → CSV). Mentre no ho facis, es mostren dades de mostra.
+</div>
+
+<!-- ═══ FILTRES ═══ -->
+<div class="filters-wrap">
+  <div class="filter-row">
+    <span class="filter-label">Gènere</span>
+    <div class="pills" id="pills-genre"></div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Sala</span>
+    <div class="pills" id="pills-venue"></div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Mes</span>
+    <div class="pills" id="pills-month"></div>
+  </div>
+</div>
+
+<!-- ═══ STATS ═══ -->
+<div class="stats-bar">
+  <span id="result-count"></span>
+</div>
+
+<!-- ═══ GRID ═══ -->
+<main class="grid" id="grid"></main>
+
+
+<script>
+// ════════════════════════════════════════════════════
+//  🔧 CONFIGURACIÓ — CANVIA NOMÉS AQUESTA LÍNIA
+//     Posa aquí la URL CSV del teu Google Sheets
+//     (Fitxer → Compartir → Publicar al web → CSV)
+// ════════════════════════════════════════════════════
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS56ljCjRd1lXpyi8ZmplinkjLIF6fyF_-ZE1q0UfKUAb5kv9YjmVLZvfcr8b6n9D2F1dZrv4ZjDVHZ/pub?output=csv';   // ← enganxa la URL aquí
+
+// ════════════════════════════════════════════════════
+//  DADES DE MOSTRA (s'usen si SHEET_CSV_URL és buit)
+// ════════════════════════════════════════════════════
+const SAMPLE_DATA = [
+  { data:'2026-07-04', artista:'Bad Gyal', sala:'Razzmatazz', genere:'Electropop', preu:'28€', link:'https://www.razzmatazz.es', descripcio:'La reina del perreo torna a Barcelona.' },
+  { data:'2026-07-05', artista:'Amaia', sala:'Sala Apolo', genere:'Pop/Indie', preu:'30€', link:'https://www.sala-apolo.com', descripcio:'Presentació del nou disc en acústic.' },
+  { data:'2026-07-09', artista:'The Lumineers', sala:'Palau Sant Jordi', genere:'Folk/Rock', preu:'55€', link:'https://www.palausantjordi.cat', descripcio:'La banda de Denver al Palau.' },
+  { data:'2026-07-12', artista:'DJ Koze', sala:'MOOG', genere:'Electronic', preu:'20€', link:'https://moogbarcelona.com', descripcio:'Nit de techno experimental.' },
+  { data:'2026-07-15', artista:'Rigoberta Bandini', sala:'Parc del Fòrum', genere:'Pop/Indie', preu:'Gratis', link:'', descripcio:'Concert gratuït al festival Grec.' },
+  { data:'2026-07-18', artista:'Rosalía', sala:'Palau Sant Jordi', genere:'Flamenco/Pop', preu:'75€', link:'https://www.palausantjordi.cat', descripcio:'Motomami World Tour.' },
+  { data:'2026-07-19', artista:'C. Tangana', sala:'Razzmatazz', genere:'Urban/Pop', preu:'35€', link:'https://www.razzmatazz.es', descripcio:'El Madrileño en versió íntima.' },
+  { data:'2026-07-22', artista:'Depeche Mode', sala:'Palau Sant Jordi', genere:'Synth-pop', preu:'90€', link:'https://www.palausantjordi.cat', descripcio:'Memento Mori Tour.' },
+  { data:'2026-08-01', artista:'Arca', sala:'MOOG', genere:'Electronic', preu:'18€', link:'https://moogbarcelona.com', descripcio:'Electronic art performance.' },
+  { data:'2026-08-07', artista:'Sen Senra', sala:'Sala Apolo', genere:'R&B/Soul', preu:'22€', link:'https://www.sala-apolo.com', descripcio:'Vibes melancòlics a la sala petita.' },
+  { data:'2026-08-14', artista:'Ojete Calor', sala:'Razzmatazz', genere:'Techno/Humor', preu:'15€', link:'https://www.razzmatazz.es', descripcio:'La guasa màxima del underground.' },
+  { data:'2026-09-05', artista:'LCD Soundsystem', sala:'Sala Apolo', genere:'Electronic/Rock', preu:'45€', link:'https://www.sala-apolo.com', descripcio:'Una de les millors bandes en viu.' },
+];
+
+// ════════════════════════════════════════════════════
+//  LÒGICA PRINCIPAL
+// ════════════════════════════════════════════════════
+let allConcerts = [];
+let activeGenre = 'Tots';
+let activeVenue = 'Totes';
+let activeMonth = 'Tots';
+let searchQ = '';
+
+const MONTHS_CA = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+
+// ── Parseja CSV ──
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+  return lines.slice(1).map(line => {
+    const cols = splitCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (cols[i] || '').replace(/^"|"$/g,'').trim(); });
+    // Normalitza noms de columna
+    return {
+      data:       obj['data'] || obj['date'] || obj['fecha'] || '',
+      artista:    obj['artista'] || obj['artist'] || obj['nom'] || '',
+      sala:       obj['sala'] || obj['venue'] || obj['lloc'] || '',
+      genere:     obj['gènere'] || obj['genere'] || obj['genre'] || obj['tipo'] || '',
+      preu:       obj['preu'] || obj['price'] || obj['precio'] || '',
+      link:       obj['link entrades'] || obj['link'] || obj['url'] || obj['entrades'] || '',
+      descripcio: obj['descripció'] || obj['descripcio'] || obj['description'] || obj['descripcion'] || '',
+    };
+  }).filter(c => c.artista);
+}
+
+function splitCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── Formata data ──
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d)) return str;
+  const dia = String(d.getDate()).padStart(2,'0');
+  const mes = MONTHS_CA[d.getMonth()].toUpperCase();
+  return `${dia} ${mes} ${d.getFullYear()}`;
+}
+function getMonth(str) {
+  if (!str) return null;
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d)) return null;
+  return `${MONTHS_CA[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// ── Construeix pills ──
+function buildPills(containerId, values, active, onSelect) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  ['Tots', ...values].forEach(val => {
+    // Normalitza "Tots/Totes"
+    const label = val === 'Tots' && containerId === 'pills-venue' ? 'Totes' :
+                  val === 'Tots' && containerId === 'pills-month' ? 'Tots' : val;
+    const pill = document.createElement('button');
+    pill.className = 'pill' + (active === val ? ' active' : '');
+    pill.textContent = label;
+    pill.addEventListener('click', () => { onSelect(val); render(); });
+    el.appendChild(pill);
+  });
+}
+
+function buildAllPills() {
+  const genres  = [...new Set(allConcerts.map(c=>c.genere).filter(Boolean))].sort();
+  const venues  = [...new Set(allConcerts.map(c=>c.sala).filter(Boolean))].sort();
+  const months  = [...new Set(allConcerts.map(c=>getMonth(c.data)).filter(Boolean))];
+
+  buildPills('pills-genre', genres, activeGenre, v => activeGenre = v);
+  buildPills('pills-venue', venues, activeVenue === 'Totes' ? 'Tots' : activeVenue, v => activeVenue = (v==='Tots'?'Totes':v));
+  buildPills('pills-month', months, activeMonth, v => activeMonth = v);
+}
+
+// ── Filtra ──
+function filtered() {
+  return allConcerts
+    .filter(c => {
+      if (activeGenre !== 'Tots' && c.genere !== activeGenre) return false;
+      if (activeVenue !== 'Totes' && c.sala !== activeVenue) return false;
+      if (activeMonth !== 'Tots' && getMonth(c.data) !== activeMonth) return false;
+      if (searchQ) {
+        const q = searchQ.toLowerCase();
+        if (!c.artista.toLowerCase().includes(q) && !c.sala.toLowerCase().includes(q) && !c.genere.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    })
+    .sort((a,b) => (a.data||'').localeCompare(b.data||''));
+}
+
+// ── Renderitza ──
+function render() {
+  // Actualitza pills actius visualment
+  document.querySelectorAll('#pills-genre .pill').forEach(p => {
+    p.classList.toggle('active', p.textContent === activeGenre);
+  });
+  document.querySelectorAll('#pills-venue .pill').forEach(p => {
+    const match = activeVenue === 'Totes' ? p.textContent === 'Totes' : p.textContent === activeVenue;
+    p.classList.toggle('active', match);
+  });
+  document.querySelectorAll('#pills-month .pill').forEach(p => {
+    p.classList.toggle('active', p.textContent === activeMonth);
+  });
+
+  const list = filtered();
+  const grid = document.getElementById('grid');
+  const countEl = document.getElementById('result-count');
+
+  countEl.innerHTML = `<strong>${list.length}</strong> concert${list.length!==1?'s':''} trobat${list.length!==1?'s':''}`;
+
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="msg-center"><span class="big">🔍</span>Cap concert coincideix amb els filtres seleccionats.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  list.forEach(c => {
+    const isFree = c.preu.toLowerCase() === 'gratis' || c.preu === '0' || c.preu === '0€';
+    const hasLink = c.link && c.link.startsWith('http');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-date-bar">
+        <span class="card-date">${formatDate(c.data)}</span>
+        ${c.genere ? `<span class="card-genre">${c.genere}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-artist">${c.artista}</div>
+        <div class="card-venue">${c.sala}</div>
+        ${c.descripcio ? `<div class="card-desc">${c.descripcio}</div>` : ''}
+      </div>
+      <div class="card-footer">
+        <span class="card-price${isFree?' free':''}">${c.preu || '—'}</span>
+        <a class="btn-tickets${hasLink?'':' no-link'}" ${hasLink?`href="${c.link}" target="_blank" rel="noopener"`:''}>
+          ${hasLink ? '🎟 Comprar entrades' : 'Aviat disponible'}
+        </a>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── Cerca ──
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQ = e.target.value.trim();
+  render();
+});
+
+// ── Init ──
+async function init() {
+  const banner = document.getElementById('config-banner');
+  if (SHEET_CSV_URL && SHEET_CSV_URL.startsWith('http')) {
+    banner.classList.add('hidden');
+    document.getElementById('grid').innerHTML = '<div class="msg-center"><span class="big">⏳</span>Carregant concerts…</div>';
+    try {
+      const res = await fetch(SHEET_CSV_URL);
+      if (!res.ok) throw new Error('Error HTTP ' + res.status);
+      const text = await res.text();
+      allConcerts = parseCSV(text);
+      if (allConcerts.length === 0) throw new Error('Cap dada vàlida al full');
+    } catch(err) {
+      document.getElementById('grid').innerHTML = `<div class="msg-center"><span class="big">⚠️</span>No s'han pogut carregar les dades.<br><small>${err.message}</small></div>`;
+      return;
+    }
+  } else {
+    allConcerts = SAMPLE_DATA;
+  }
+  buildAllPills();
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
